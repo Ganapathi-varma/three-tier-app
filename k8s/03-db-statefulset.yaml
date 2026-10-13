@@ -33,7 +33,10 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:16-alpine
+          # Built image with the schema baked in (database/Dockerfile).
+          # Rendered from placeholders by scripts/build-and-push.sh.
+          image: __REGISTRY__/three-tier-database:__TAG__
+          imagePullPolicy: Always
           ports:
             - containerPort: 5432
           env:
@@ -52,8 +55,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
-            - name: init
-              mountPath: /docker-entrypoint-initdb.d
           readinessProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
@@ -64,10 +65,10 @@ spec:
               command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
             initialDelaySeconds: 15
             periodSeconds: 10
-      volumes:
-        - name: init
-          configMap:
-            name: db-init
+      # Private-registry pull secret (delete for public images; not needed on
+      # EKS with IAM-based pulls). See README section 4.
+      imagePullSecrets:
+        - name: regcred
   volumeClaimTemplates:
     - metadata:
         name: data

@@ -1,7 +1,8 @@
 # Backend Deployment + Service.
-# Image name assumes you built & loaded it into your local cluster
-# (see README). Uses imagePullPolicy: IfNotPresent so kind/minikube
-# use the locally loaded image instead of pulling from a registry.
+# The image reference uses placeholders that `scripts/build-and-push.sh`
+# fills in (REGISTRY + TAG), producing a deployable manifest under
+# k8s-rendered/. imagePullPolicy is Always so the cluster pulls the
+# pushed image from the registry.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,10 +18,15 @@ spec:
       labels:
         app: backend
     spec:
+      # Only needed for PRIVATE registries. Create the secret with:
+      #   kubectl create secret docker-registry regcred ... -n three-tier
+      # For public images you can delete this block.
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: backend
-          image: three-tier-backend:latest
-          imagePullPolicy: IfNotPresent
+          image: __REGISTRY__/three-tier-backend:__TAG__
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           env:

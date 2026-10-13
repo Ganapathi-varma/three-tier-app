@@ -1,5 +1,6 @@
 # Frontend Deployment + Service.
 # The nginx image proxies /api/ to the backend Service via BACKEND_URL.
+# Image reference uses placeholders filled in by scripts/build-and-push.sh.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,10 +16,14 @@ spec:
       labels:
         app: frontend
     spec:
+      # Only needed for PRIVATE registries (see backend manifest comment).
+      # Delete this block for public images.
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: frontend
-          image: three-tier-frontend:latest
-          imagePullPolicy: IfNotPresent
+          image: __REGISTRY__/three-tier-frontend:__TAG__
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           env:
