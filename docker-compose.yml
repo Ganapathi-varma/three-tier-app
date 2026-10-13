@@ -1,0 +1,51 @@
+# docker-compose for local testing of all three tiers.
+# Run with:  docker compose up --build
+# Then open: http://localhost:8080
+
+services:
+  # ---- Tier 3: Database -----------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppassword
+      POSTGRES_DB: appdb
+    volumes:
+      # Schema is created automatically on first startup.
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---- Tier 2: Backend API --------------------------------------------------
+  backend:
+    build: ./backend
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: appdb
+      JWT_SECRET: local-dev-secret-change-me
+      DEMO_USER: admin
+      DEMO_PASSWORD: password123
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ---- Tier 1: Frontend (nginx) --------------------------------------------
+  frontend:
+    build: ./frontend
+    environment:
+      BACKEND_URL: http://backend:3000
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

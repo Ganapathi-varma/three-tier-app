@@ -1,0 +1,5 @@
+# Namespace to keep all three tiers together and isolated.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: three-tier

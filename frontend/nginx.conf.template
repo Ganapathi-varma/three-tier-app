@@ -1,0 +1,25 @@
+# nginx config template. The entrypoint substitutes ${BACKEND_URL}
+# at container start (via envsubst), so the same image works in
+# docker-compose and Kubernetes just by changing an env var.
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Serve the static SPA files.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Proxy API calls to the backend service.
+    # Everything under /api/ is forwarded with the /api prefix stripped.
+    location /api/ {
+        proxy_pass ${BACKEND_URL}/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
