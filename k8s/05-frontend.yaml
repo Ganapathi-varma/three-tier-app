@@ -16,13 +16,9 @@ spec:
       labels:
         app: frontend
     spec:
-      # Only needed for PRIVATE registries (see backend manifest comment).
-      # Delete this block for public images.
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: frontend
-          image: __REGISTRY__/three-tier-frontend:__TAG__
+          image: ganapathivarma/three-tier-frontend:1.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 80

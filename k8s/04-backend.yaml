@@ -18,14 +18,9 @@ spec:
       labels:
         app: backend
     spec:
-      # Only needed for PRIVATE registries. Create the secret with:
-      #   kubectl create secret docker-registry regcred ... -n three-tier
-      # For public images you can delete this block.
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: backend
-          image: __REGISTRY__/three-tier-backend:__TAG__
+          image: ganapathivarma/three-tier-backend:1.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
